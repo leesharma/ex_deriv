@@ -3,51 +3,9 @@ defmodule SymbolicArithmetic do
   Symbolic arithmetic library for Elixir.
   """
 
-
-  @typedoc """
-  Basic arithmetic operation.
-
-  This includes all currently supported operations in the `SymbolicArithmetic`
-  library.
-  """
-  @type op :: :+ | :- | :* | :/
-
-  @typedoc "Arithmetic error."
-  @type error :: {:error, String.t}
-
-  @typedoc """
-  Symbolic math term.
-
-  This can be either a binary operation, a variable, a constant, or an error.
-  """
-  @type mathterm :: {op, mathterm, mathterm} | number | atom | error
-
-
   @doc """
-  Adds two symbolic terms together.
-
-  If the terms can be reduced (e.g. `0 + <term>` or `<number> + <number>`), the
-  expression will be simplified. Otherwise, the function will return a symbolic
-  arithmetic term.
-
-  Errors in either argument will be propagated up.
-
-  ## Examples
-
-      iex> SymbolicArithmetic.add(0, :variable)
-      :variable
-
-      iex> SymbolicArithmetic.add(5, 5)
-      10
-
-      iex> SymbolicArithmetic.add(:x, :y)
-      {:+, :x, :y}
-
-      iex> SymbolicArithmetic.add(:x, {:error, "reason"})
-      {:error, "reason"}
-
+  Adds two symbolic terms together, simplifying if possible.
   """
-  @spec add(mathterm, mathterm) :: mathterm
   def add(left, right)
   def add({:error,_}=err,_), do: err
   def add(_,{:error,_}=err), do: err
@@ -59,30 +17,8 @@ defmodule SymbolicArithmetic do
 
 
   @doc """
-  Subtracts one symbolic term from another.
-
-  If the terms can be reduced (e.g. `<term> - 0` or `<number> - <number>`), the
-  expression will be simplified. Otherwise, the function will return a symbolic
-  arithmetic term.
-
-  Errors in either argument will be propagated up.
-
-  ## Examples
-
-      iex> SymbolicArithmetic.subtract(:variable, 0)
-      :variable
-
-      iex> SymbolicArithmetic.subtract(5, 5)
-      0
-
-      iex> SymbolicArithmetic.subtract(:x, :y)
-      {:-, :x, :y}
-
-      iex> SymbolicArithmetic.subtract(:x, {:error, "reason"})
-      {:error, "reason"}
-
+  Subtracts one symbolic term from another, simplifying if possible.
   """
-  @spec subtract(mathterm, mathterm) :: mathterm
   def subtract(minuend, subtrahend)
   def subtract({:error,_}=err,_), do: err
   def subtract(_,{:error,_}=err), do: err
@@ -94,33 +30,8 @@ defmodule SymbolicArithmetic do
 
 
   @doc """
-  Multiplies two symbolic terms
-
-  If the terms can be reduced (e.g. `<term> * 0` or `<term> * 1`), the
-  expression will be simplified. Otherwise, the function will return a symbolic
-  arithmetic term.
-
-  Errors in either argument will be propagated up.
-
-  ## Examples
-
-      iex> SymbolicArithmetic.multiply(:variable, 0)
-      0
-
-      iex> SymbolicArithmetic.multiply(:variable, 1)
-      :variable
-
-      iex> SymbolicArithmetic.multiply(2, 3)
-      6
-
-      iex> SymbolicArithmetic.multiply(:x, :y)
-      {:*, :x, :y}
-
-      iex> SymbolicArithmetic.multiply(:x, {:error, "reason"})
-      {:error, "reason"}
-
+  Multiplies two symbolic terms, simplifying if possible.
   """
-  @spec multiply(mathterm, mathterm) :: mathterm
   def multiply(left, right)
   def multiply({:error,_}=err,_), do: err
   def multiply(_,{:error,_}=err), do: err
@@ -133,31 +44,10 @@ defmodule SymbolicArithmetic do
 
 
   @doc """
-  Divides two symbolic terms.
+  Divides two symbolic terms, simplifying if possible.
 
-  If the terms can be reduced (e.g. `<term> / 1` or `<number> / <number>`), the
-  expression will be simplified. Like with standard Elixir, constant division
-  will return a float. Dividing by zero is not permitted and will return an
-  error.
-
-  Errors in either argument will be propagated up.
-
-  ## Examples
-
-      iex> SymbolicArithmetic.divide(:variable, 0)
-      {:error, "cannot divide by zero"}
-
-      iex> SymbolicArithmetic.divide(5, 5)
-      1.0
-
-      iex> SymbolicArithmetic.divide(:x, :y)
-      {:/, :x, :y}
-
-      iex> SymbolicArithmetic.divide(:x, {:error, "reason"})
-      {:error, "reason"}
-
+  Dividing by zero is not permitted and will return an error.
   """
-  @spec divide(mathterm, mathterm) :: mathterm
   def divide(dividend, divisor)
   def divide({:error,_}=err,_), do: err
   def divide(_,{:error,_}=err), do: err
@@ -171,10 +61,6 @@ defmodule SymbolicArithmetic do
   #
   # These are represented by AST-like tuples: {operation, left, right}
   #
-  @spec add_term(mathterm, mathterm) :: mathterm
-  @spec sub_term(mathterm, mathterm) :: mathterm
-  @spec mul_term(mathterm, mathterm) :: mathterm
-  @spec div_term(mathterm, mathterm) :: mathterm
   defp add_term(u, v), do: {:+, u, v}
   defp sub_term(u, v), do: {:-, u, v}
   defp mul_term(u, v), do: {:*, u, v}
