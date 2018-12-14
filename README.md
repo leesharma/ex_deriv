@@ -1,6 +1,19 @@
 # ExDeriv
 
-**TODO: Add description**
+**A basic symbolic differentiation library**
+
+## Usage
+
+The library takes a polynomial expression in AST form. Currently, only four
+operations are supported: +, -, /, *.
+
+```elixir
+> import ExDeriv
+> derive({:\*, :x, 5}, :x)  # d(5x)/dx = 5
+5
+> derive({:+, {:-, {:\*, {:/, :x, :y}, 5}, :a}, :b}, :y) # d(5x/y - a + b)/dy
+{:\*, 5, {:/, {:\*, -1, :x}, {:\*, :y, :y}}}             #     = -5x/y^2
+```
 
 ## Installation
 
