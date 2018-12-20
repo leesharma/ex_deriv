@@ -3,14 +3,21 @@ defmodule ExDerivTest do
   doctest ExDeriv
   import ExDeriv, only: [derive: 2]
 
-  # (u+v)' = u' + v'
+  # reciprocal rule: (1/u)' = -u' / (u*u)
+  test "reciprocal rule" do
+    # 1/(2x) = -2/x*x
+    assert {:/, -2, {:*, {:*,2,:x}, {:*,2,:x}}} ==
+      derive({:/, 1, {:*, 2, :x}}, :x)
+  end
+
+  # sum rule: (u+v)' = u' + v'
   test "sum rule" do
     assert 2 == derive({:+, :x, :x}, :x)
     assert 3 == derive({:+, :x, {:+, :x, :x}}, :x)
     assert 0 == derive({:+, :x, :x}, :y)
   end
 
-  # (u-v)' = u' - v'
+  # difference rule: (u-v)' = u' - v'
   test "difference rule" do
     assert 0 == derive({:-, :x, :x}, :x)
     assert 1 == derive({:-, :x, {:-, :x, :x}}, :x)
