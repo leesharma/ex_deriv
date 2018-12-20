@@ -9,7 +9,9 @@ defmodule SymbolicArithmetic do
     add_term: 2, sub_term: 2, mul_term: 2, div_term: 2, pow_term: 2,
     err_term: 1,
     # query macro for guard clauses
-    is_error: 1
+    is_addition: 1, is_subtraction: 1, is_multiplication: 1, is_error: 1,
+    # accessor functions
+    left: 1, right: 1
   ]
 
   @doc """
@@ -21,7 +23,14 @@ defmodule SymbolicArithmetic do
   def add(u, 0), do: u
   def add(0, v), do: v
   def add(u, v) when is_number(u) and is_number(v), do: u + v
-  def add(u, n) when is_number(n) and n < 0, do: sub_term(u, -n)
+  def add(u, c) when is_number(c) and c < 0, do: sub_term(u, -c)
+  def add(c, u) when is_number(c), do: add(u, c)
+  def add(u, c) when is_number(c) and is_addition(u) do
+    add(left(u), add(right(u),c))
+  end
+  def add(u, c) when is_number(c) and is_subtraction(u) do
+    add(left(u), subtract(c,right(u)))
+  end
   def add(u, u), do: mul_term(2, u)
   def add(u, v), do: add_term(u, v)
 
@@ -34,6 +43,7 @@ defmodule SymbolicArithmetic do
   def subtract(_,err) when is_error(err), do: err
   def subtract(u, u), do: 0
   def subtract(u, v) when is_number(u) and is_number(v), do: u - v
+  def subtract(u, c) when is_number(c) and c < 0, do: add_term(u, -c)
   def subtract(u, 0), do: u
   def subtract(0, v), do: mul_term(-1, v)
   def subtract(u, v), do: sub_term(u, v)
@@ -50,6 +60,10 @@ defmodule SymbolicArithmetic do
   def multiply(u, 1), do: u
   def multiply(1, v), do: v
   def multiply(u, v) when is_number(u) and is_number(v), do: u * v
+  def multiply(u, c) when is_number(c), do: multiply(c, u)
+  def multiply(c, u) when is_number(c) and is_multiplication(u) do
+    multiply(multiply(c, left(u)), right(u))
+  end
   def multiply(u, u), do: pow_term(u, 2)
   def multiply(u, v), do: mul_term(u, v)
 

@@ -64,7 +64,7 @@ defmodule ExDerivTest do
       derive(pow_term(add_term(:x,1),2), :x)
 
     # d((2x+1)^2)/dx = 4*(2x+1)
-    assert mul_term(mul_term(2, add_term(mul_term(2,:x),1)), 2) ==
+    assert mul_term(4, add_term(mul_term(2,:x),1)) ==
       derive(pow_term(add_term(mul_term(2,:x),1),2), :x)
 
     # d((x/y)^3)/dy = 3(x/y)^2 * -x/y^2 = -3x^3 / y^4

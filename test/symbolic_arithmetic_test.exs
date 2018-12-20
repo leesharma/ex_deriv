@@ -27,16 +27,22 @@ defmodule SymbolicArithmeticTest do
   end
 
   test "addition with a constant and a variable doesn't reduce" do
-    assert add_term(10,:x) == add(10, :x)
+    assert add_term(:x,10) == add(10, :x)
     assert add_term(:x,10) == add(:x, 10)
   end
 
   test "addition with two different variables doesn't reduce" do
-    assert add_term(:x, :y) == add(:x, :y)
+    assert add_term(:x,:y) == add(:x, :y)
   end
 
   test "addition with two of the same variable reduces to *2" do
     assert mul_term(2,:x) == add(:x, :x)
+  end
+
+  test "adding successive constants reduces to a single constant" do
+    assert 15 == add(5, add(add(3, add(2,1)), 4))
+    assert add_term(:x, 4) == add(2, add(:x, 2))
+    assert :x == add(2, subtract(:x, 2))
   end
 
   ## SUBTRACTION ##############################################################
@@ -47,6 +53,10 @@ defmodule SymbolicArithmeticTest do
 
   test "subtraction with zero on the left reduces to the negative right term" do
     assert mul_term(-1,:x) == subtract(0, :x)
+  end
+
+  test "subtracting a negative constant reduces to addition" do
+    assert add_term(:x,5) == subtract(:x, -5)
   end
 
   test "subtraction with two constants reduces to a constant" do
@@ -84,7 +94,7 @@ defmodule SymbolicArithmeticTest do
 
   test "multiplication with a constant and a variable doesn't reduce" do
     assert mul_term(10,:x) == multiply(10, :x)
-    assert mul_term(:x,10) == multiply(:x, 10)
+    assert mul_term(10,:x) == multiply(:x, 10)
   end
 
   test "multiplying two different variables doesn't reduce" do
@@ -93,6 +103,11 @@ defmodule SymbolicArithmeticTest do
 
   test "multiplying two of the same variable reduces to squaring" do
     assert pow_term(:x, 2) == multiply(:x, :x)
+  end
+
+  test "multiplying successive constants reduces to a single constant" do
+    assert 120 == multiply(5, multiply(multiply(3, multiply(2,1)), 4))
+    assert mul_term(4, :x) == multiply(2, multiply(:x, 2))
   end
 
   ## DIVISION #################################################################
@@ -158,15 +173,15 @@ defmodule SymbolicArithmeticTest do
     assert :z == pow(:z, 1)
   end
 
-  test "an exponant with all constant terms reduce to a constant" do
+  test "an exponent with all constant terms reduce to a constant" do
     assert 144.0 == pow(12, 2)
   end
 
-  test "negative exponants reduce to the reciprocal" do
+  test "negative exponents reduce to the reciprocal" do
     assert div_term(1, pow_term(:x,2)) == pow(:x, -2)
   end
 
-  test "variable exponants result in an error (not supported)" do
+  test "variable exponents result in an error (not supported)" do
     assert is_error(pow(:x, :y))
   end
 end
