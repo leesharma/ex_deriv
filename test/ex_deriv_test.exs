@@ -3,32 +3,53 @@ defmodule ExDerivTest do
   doctest ExDeriv
   import ExDeriv, only: [derive: 2]
 
-  # (u+v)' = u' + v'
+  # for constructing targets and expected results
+  import SymbolicExpressions, only: [
+    add_term: 2, sub_term: 2, mul_term: 2, div_term: 2, is_error: 1
+  ]
+
+  # sum rule: (u+v)' = u' + v'
   test "sum rule" do
-    assert 2 == derive({:+, :x, :x}, :x)
-    assert 3 == derive({:+, :x, {:+, :x, :x}}, :x)
-    assert 0 == derive({:+, :x, :x}, :y)
+    # d(x+x)/dx = 2
+    assert 2 == derive(add_term(:x,:x), :x)
+    # d(x+x+x)/dx = 3
+    assert 3 == derive(add_term(:x, add_term(:x,:x)), :x)
+    # d(x+x)/dx = 0
+    assert 0 == derive(add_term(:x,:x), :y)
   end
 
-  # (u-v)' = u' - v'
+  # difference rule: (u-v)' = u' - v'
   test "difference rule" do
-    assert 0 == derive({:-, :x, :x}, :x)
-    assert 1 == derive({:-, :x, {:-, :x, :x}}, :x)
-    assert 0 == derive({:-, :x, :x}, :y)
+    # d(x-x)/dx = 0
+    assert 0 == derive(sub_term(:x,:x), :x)
+    # d(x-(x-x))/dx = 1
+    assert 1 == derive(sub_term(:x, sub_term(:x,:x)), :x)
+    # d(x-x)/dy = 0
+    assert 0 == derive(sub_term(:x,:x), :y)
   end
 
   # product rule: (uv)' = u'v + uv'
   test "product rule" do
-    assert :b == derive({:*, :a, :b}, :a)
+    # d(a*b)/da = b
+    assert :b == derive(mul_term(:a,:b), :a)
   end
 
   # quotient rule: (u/v)' = (u'v - uv') / v^2
   test "quotient rule" do
-    assert {:/, :b, {:*, :b, :b}} == derive({:/, :a, :b}, :a)
-    assert {:error,_} = derive({:/, :a, 0}, :a)
+    # d(a/b)/da = b/(b*b) = 1/b
+    assert div_term(:b, mul_term(:b,:b)) == derive(div_term(:a,:b), :a)
+    # d(a/0)/da = ERROR
+    assert is_error(
+      derive(div_term(:a,0), :a)
+    )
   end
 
   test "error propagation" do
-    assert {:error,_} = derive({:*, :x, {:+, 5, {:/, :x, 0}}}, :x)
+    # d(x*(5+x/0))/dx = ERROR
+    assert is_error(
+      derive(mul_term(:x,
+                      add_term(5,
+                               div_term(:x,0))), :x)
+    )
   end
 end

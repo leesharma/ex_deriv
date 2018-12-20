@@ -1,161 +1,138 @@
 defmodule SymbolicArithmeticTest do
   use ExUnit.Case
   doctest SymbolicArithmetic
-  require SymbolicArithmetic, as: Sym
+  import SymbolicArithmetic, only: [add: 2, subtract: 2, multiply: 2, divide: 2]
+
+  import SymbolicExpressions, only: [
+    add_term: 2, sub_term: 2, mul_term: 2, div_term: 2, is_error: 1,
+  ]
 
   ## ADDITION #################################################################
 
-  test "addition with zero on the left" do
-    assert :x == Sym.add(:x, 0)
+  test "addition with zero reduces to the other term" do
+    assert :x == add(:x, 0)
+    assert :x == add(0, :x)
   end
 
-  test "addition with zero on the right" do
-    assert :x == Sym.add(0, :x)
+  test "addition with two constants reduces to a constant" do
+    assert 111 == add(10, 101)
   end
 
-  test "addition with two constants" do
-    assert 111 == Sym.add(10, 101)
+  test "addition with a constant and a variable doesn't reduce" do
+    assert add_term(10,:x) == add(10, :x)
+    assert add_term(:x,10) == add(:x, 10)
   end
 
-  test "addition with a constant and a variable" do
-    assert {:+, 10, :x} == Sym.add(10, :x)
+  test "addition with two different variables doesn't reduce" do
+    assert add_term(:x, :y) == add(:x, :y)
   end
 
-  test "addition with a variable and a constant" do
-    assert {:+, :x, 10} == Sym.add(:x, 10)
-  end
-
-  test "addition with two different variables" do
-    assert {:+, :x, :y} == Sym.add(:x, :y)
-  end
-
-  test "addition with two of the same variable" do
-    assert {:*, 2, :x} == Sym.add(:x, :x)
+  test "addition with two of the same variable reduces to *2" do
+    assert mul_term(2,:x) == add(:x, :x)
   end
 
   ## SUBTRACTION ##############################################################
 
-  test "subtraction with zero on the left" do
-    assert :x == Sym.subtract(:x, 0)
+  test "subtraction with zero on the right reduces to the left term" do
+    assert :x == subtract(:x, 0)
   end
 
-  test "subtraction with zero on the right" do
-    assert {:*, -1, :x} == Sym.subtract(0, :x)
+  test "subtraction with zero on the left reduces to the negative right term" do
+    assert mul_term(-1,:x) == subtract(0, :x)
   end
 
-  test "subtraction with two constants" do
-    assert 10 == Sym.subtract(111, 101)
+  test "subtraction with two constants reduces to a constant" do
+    assert 10 == subtract(111, 101)
   end
 
-  test "subtraction with another constant and zero" do
-    assert 101 == Sym.subtract(101, 0)
+  test "subtraction with a constant and a variable doesn't reduce" do
+    assert sub_term(10,:x) == subtract(10, :x)
+    assert sub_term(:x,10) == subtract(:x, 10)
   end
 
-  test "subtraction with zero and another constant" do
-    assert -101 == Sym.subtract(0, 101)
+  test "subtracting two different variables doesn't reduce" do
+    assert sub_term(:x,:y) == subtract(:x, :y)
   end
 
-  test "subtraction with a constant and a variable" do
-    assert {:-, 10, :x} == Sym.subtract(10, :x)
-  end
-
-  test "subtraction with a variable and a constant" do
-    assert {:-, :x, 10} == Sym.subtract(:x, 10)
-  end
-
-  test "subtracting two different variables" do
-    assert {:-, :x, :y} == Sym.subtract(:x, :y)
-  end
-
-  test "subtracting two of the same variable" do
-    assert 0 == Sym.subtract(:x, :x)
+  test "subtracting two of the same variable reduces to 0" do
+    assert 0 == subtract(:x, :x)
   end
 
   ## MULTIPLICATION ###########################################################
 
-  test "multiplication with zero on the left" do
-    assert 0 == Sym.multiply(:x, 0)
+  test "multiplication with zero reduces to zero" do
+    assert 0 == multiply(:x, 0)
+    assert 0 == multiply(0, :x)
   end
 
-  test "multiplication with zero on the right" do
-    assert 0 == Sym.multiply(0, :x)
+  test "multiplication with one reduces to the other term" do
+    assert :x == multiply(:x, 1)
+    assert :x == multiply(1, :x)
   end
 
-  test "multiplication with one on the left" do
-    assert :x == Sym.multiply(:x, 1)
+  test "multiplication with two constants reduces to the product" do
+    assert 1010 == multiply(10, 101)
   end
 
-  test "multiplication with one on the right" do
-    assert :x == Sym.multiply(1, :x)
+  test "multiplication with a constant and a variable doesn't reduce" do
+    assert mul_term(10,:x) == multiply(10, :x)
+    assert mul_term(:x,10) == multiply(:x, 10)
   end
 
-  test "multiplication with two constants" do
-    assert 1010 == Sym.multiply(10, 101)
-  end
-
-  test "multiplication with a constant and a variable" do
-    assert {:*, 10, :x} == Sym.multiply(10, :x)
-  end
-
-  test "multiplication with a variable and a constant" do
-    assert {:*, :x, 10} == Sym.multiply(:x, 10)
-  end
-
-  test "multiplying two different variables" do
-    assert {:*, :x, :y} == Sym.multiply(:x, :y)
+  test "multiplying two different variables doesn't reduce" do
+    assert mul_term(:x, :y) == multiply(:x, :y)
   end
 
   ## DIVISION #################################################################
 
-  test "division with zero on the left" do
-    assert {:error, _} = Sym.divide(:x, 0)
+  test "cannot divide by zero" do
+    assert is_error(divide(:x, 0))
   end
 
-  test "division with zero on the right" do
-    assert 0 == Sym.divide(0, :x)
+  test "division with zero on the right is zero" do
+    assert 0 == divide(0, :x)
   end
 
-  test "division with one on the left" do
-    assert :x == Sym.divide(:x, 1)
+  test "division with one on the right reduces to the left term" do
+    assert :x == divide(:x, 1)
   end
 
-  test "division with one on the right" do
-    assert {:/, 1, :x} == Sym.divide(1, :x)
+  test "division with one on the left doesn't reduce" do
+    assert div_term(1,:x) == divide(1, :x)
   end
 
-  test "division with two constants" do
-    assert 10.0 == Sym.divide(1010, 101)
+  test "division with two constants reduces to a constant" do
+    assert 10.0 == divide(1010, 101)
   end
 
-  test "division with a constant and a variable" do
-    assert {:/, 10, :x} == Sym.divide(10, :x)
+  test "division with a nonzero constant and a variable doesn't reduce" do
+    assert div_term(10,:x) == divide(10, :x)
+    assert div_term(:x,10) == divide(:x, 10)
   end
 
-  test "division with a variable and a constant" do
-    assert {:/, :x, 10} == Sym.divide(:x, 10)
-  end
-
-  test "dividing two different variables" do
-    assert {:/, :x, :y} == Sym.divide(:x, :y)
+  test "dividing two different variables doesn't reduce" do
+    assert div_term(:x,:y) == divide(:x, :y)
   end
 
   test "divide by zero error propagates to the left" do
-    actual = Sym.divide(1, 0)
-    |> Sym.divide(:w)
-    |> Sym.multiply(:x)
-    |> Sym.add(:y)
-    |> Sym.subtract(:z)
+    # ((((1/0) / w) * x) + y) - z = ERROR
+    result = divide(1, 0)
+             |> divide(:w)
+             |> multiply(:x)
+             |> add(:y)
+             |> subtract(:z)
 
-    assert {:error, _msg} = actual
+    assert is_error(result)
   end
 
   test "divide by zero error propagates to the right" do
-    actual = Sym.subtract(:z,
-                          Sym.add(:y,
-                                  Sym.multiply(:x,
-                                               Sym.divide(:w,
-                                                          Sym.divide(1, 0)))))
+    # z - (y + (x * (w / (1/0)))) = ERROR
+    result = subtract(:z,
+                      add(:y,
+                          multiply(:x,
+                                   divide(:w,
+                                          divide(1, 0)))))
 
-    assert {:error, _msg} = actual
+    assert is_error(result)
   end
 end
