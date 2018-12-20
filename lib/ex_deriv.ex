@@ -21,44 +21,44 @@ defmodule ExDeriv do
 
   This operation currently supports four arithmetic functions: +, -, *, /
   """
-  def derive(expression, variable \\ :x)
+  def derive_quoted(expression, variable \\ :x)
 
   # primitives
-  def derive(x, x) when is_atom(x),                 do: 1
-  def derive(y, _) when is_atom(y) or is_number(y), do: 0
+  def derive_quoted(x, x) when is_atom(x),                 do: 1
+  def derive_quoted(y, _) when is_atom(y) or is_number(y), do: 0
 
   # sum rule: (u+v)' = u' + v'
-  def derive(term, x) when is_addition(term) do
+  def derive_quoted(term, x) when is_addition(term) do
     u = left(term)
     v = right(term)
-    add(derive(u,x), derive(v,x))
+    add(derive_quoted(u,x), derive_quoted(v,x))
   end
 
   # difference rule: (u-v)' = u' - v'
-  def derive(term, x) when is_subtraction(term) do
+  def derive_quoted(term, x) when is_subtraction(term) do
     u = left(term)
     v = right(term)
-    subtract(derive(u,x), derive(v,x))
+    subtract(derive_quoted(u,x), derive_quoted(v,x))
   end
 
   # product rule: (uv)' = u'v + uv'
-  def derive(term, x) when is_multiplication(term) do
+  def derive_quoted(term, x) when is_multiplication(term) do
     u = left(term)
     v = right(term)
 
-    left  = multiply(v, derive(u,x))
-    right = multiply(u, derive(v,x))
+    left  = multiply(v, derive_quoted(u,x))
+    right = multiply(u, derive_quoted(v,x))
 
     add(left, right)
   end
 
   # quotient rule: (u/v)' = (u'v - uv') / v^2
-  def derive(term, x) when is_division(term) do
+  def derive_quoted(term, x) when is_division(term) do
     u = left(term)
     v = right(term)
 
-    left  = multiply(v, derive(u,x))
-    right = multiply(u, derive(v,x))
+    left  = multiply(v, derive_quoted(u,x))
+    right = multiply(u, derive_quoted(v,x))
     numer = subtract(left, right)
     denom = multiply(v, v)
 
@@ -66,16 +66,16 @@ defmodule ExDeriv do
   end
 
   # power rule: (x^n)' = n*x^(n-1)
-  def derive(term, x) when is_exponent(term) do
+  def derive_quoted(term, x) when is_exponent(term) do
     base = left(term)
     exp = right(term)
 
     # chain rule: (f(g(x)))' = f'(g(x)) * g'(x)
     dfg = multiply(exp, pow(base, exp-1))
-    dg = derive(base, x)
+    dg = derive_quoted(base, x)
     multiply(dfg, dg)
   end
 
   # errors
-  def derive(err, _) when is_error(err), do: err
+  def derive_quoted(err, _) when is_error(err), do: err
 end
