@@ -6,7 +6,8 @@ defmodule SymbolicArithmetic do
   require SymbolicExpressions
   import SymbolicExpressions, only: [
     # construct new terms
-    add_term: 2, sub_term: 2, mul_term: 2, div_term: 2, err_term: 1,
+    add_term: 2, sub_term: 2, mul_term: 2, div_term: 2, pow_term: 2,
+    err_term: 1,
     # query macro for guard clauses
     is_error: 1
   ]
@@ -49,6 +50,7 @@ defmodule SymbolicArithmetic do
   def multiply(u, 1), do: u
   def multiply(1, v), do: v
   def multiply(u, v) when is_number(u) and is_number(v), do: u * v
+  def multiply(u, u), do: pow_term(u, 2)
   def multiply(u, v), do: mul_term(u, v)
 
 
@@ -65,4 +67,13 @@ defmodule SymbolicArithmetic do
   def divide(u, 1), do: u
   def divide(u, v) when is_number(u) and is_number(v), do: u / v
   def divide(u, v), do: div_term(u, v)
+
+  @doc """
+  Raises the first term to the second's power.
+  """
+  def pow(_, 0), do: 1
+  def pow(u, 1), do: u
+  def pow(u, v) when is_number(u) and is_number(v), do: :math.pow(u,v)
+  def pow(u, v) when is_number(v) and v < 0, do: div_term(1, pow_term(u,-v))
+  def pow(u, v), do: pow_term(u, v)
 end

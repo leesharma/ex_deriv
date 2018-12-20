@@ -12,7 +12,7 @@ defmodule ExDeriv do
     left: 1, right: 1,
     # query macros for guard clauses
     is_addition: 1, is_subtraction: 1, is_multiplication: 1, is_division: 1,
-    is_error: 1,
+    is_exponent: 1, is_error: 1,
   ]
   import SymbolicArithmetic
 
@@ -63,6 +63,17 @@ defmodule ExDeriv do
     denom = multiply(v, v)
 
     divide(numer, denom)
+  end
+
+  # power rule: (x^n)' = n*x^(n-1)
+  def derive(term, x) when is_exponent(term) do
+    base = left(term)
+    exp = right(term)
+
+    # chain rule: (f(g(x)))' = f'(g(x)) * g'(x)
+    dfg = multiply(exp, pow(base, exp-1))
+    dg = derive(base, x)
+    multiply(dfg, dg)
   end
 
   # errors

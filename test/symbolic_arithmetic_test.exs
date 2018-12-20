@@ -1,10 +1,14 @@
 defmodule SymbolicArithmeticTest do
   use ExUnit.Case
   doctest SymbolicArithmetic
-  import SymbolicArithmetic, only: [add: 2, subtract: 2, multiply: 2, divide: 2]
+
+  import SymbolicArithmetic, only: [
+    add: 2, subtract: 2, multiply: 2, divide: 2, pow: 2,
+  ]
 
   import SymbolicExpressions, only: [
-    add_term: 2, sub_term: 2, mul_term: 2, div_term: 2, is_error: 1,
+    add_term: 2, sub_term: 2, mul_term: 2, div_term: 2, pow_term: 2,
+    is_error: 1,
   ]
 
   ## ADDITION #################################################################
@@ -87,6 +91,10 @@ defmodule SymbolicArithmeticTest do
     assert mul_term(:x, :y) == multiply(:x, :y)
   end
 
+  test "multiplying two of the same variable reduces to squaring" do
+    assert pow_term(:x, 2) == multiply(:x, :x)
+  end
+
   ## DIVISION #################################################################
 
   test "cannot divide by zero" do
@@ -138,5 +146,27 @@ defmodule SymbolicArithmeticTest do
                                           divide(1, 0)))))
 
     assert is_error(result)
+  end
+
+  ## EXPONANTS ################################################################
+
+  test "anything to the zeroth power is 1" do
+    assert 1 == pow(multiply(:x,:y), 0)
+  end
+
+  test "anything to the 1st power is itself" do
+    assert :z == pow(:z, 1)
+  end
+
+  test "an exponant with all constant terms reduce to a constant" do
+    assert 144.0 == pow(12, 2)
+  end
+
+  test "negative exponants reduce to the reciprocal" do
+    assert div_term(1, pow_term(:x,2)) == pow(:x, -2)
+  end
+
+  test "variable exponants result in an error (not supported)" do
+    assert is_error(pow(:x, :y))
   end
 end
