@@ -3,16 +3,16 @@ defmodule SymbolicExpressions do
   #
   # These are represented by AST-like tuples: {operation, left, right}
   #
-  def add_term(u, v), do: {:+, u, v}
-  def sub_term(u, v), do: {:-, u, v}
-  def mul_term(u, v), do: {:*, u, v}
-  def div_term(u, v), do: {:/, u, v}
+  def add_term(u, v), do: {:+, [], [u,v]}
+  def sub_term(u, v), do: {:-, [], [u,v]}
+  def mul_term(u, v), do: {:*, [], [u,v]}
+  def div_term(u, v), do: {:/, [], [u,v]}
   def err_term(msg), do: {:error, msg}
 
   # accessor methods
 
-  def left({_,left,_}),   do: left
-  def right({_,_,right}), do: right
+  def left({_,_,[left,_]}),   do: left
+  def right({_,_,[_,right]}), do: right
 
   # query macros for guard clauses
 
