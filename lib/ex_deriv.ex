@@ -6,15 +6,15 @@ defmodule ExDeriv do
   Any polynomial terms must be defined in terms of these functions.
   """
 
-  require SymbolicArithmetic
-  import SymbolicArithmetic,
-    only: [
-      add: 2, subtract: 2, multiply: 2, divide: 2,
-      left: 1, right: 1,
-      is_addition: 1, is_subtraction: 1,
-      is_multiplication: 1, is_division: 1,
-      is_error: 1
-    ]
+  require SymbolicExpressions
+  import SymbolicExpressions, only: [
+    # accessor functions
+    left: 1, right: 1,
+    # query macros for guard clauses
+    is_addition: 1, is_subtraction: 1, is_multiplication: 1, is_division: 1,
+    is_error: 1,
+  ]
+  import SymbolicArithmetic
 
   @doc """
   Derives an expression in terms of the given variable.

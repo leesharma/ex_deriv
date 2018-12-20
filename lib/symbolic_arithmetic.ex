@@ -3,12 +3,20 @@ defmodule SymbolicArithmetic do
   Symbolic arithmetic library for Elixir.
   """
 
+  require SymbolicExpressions
+  import SymbolicExpressions, only: [
+    # construct new terms
+    add_term: 2, sub_term: 2, mul_term: 2, div_term: 2, err_term: 1,
+    # query macro for guard clauses
+    is_error: 1
+  ]
+
   @doc """
   Adds two symbolic terms together, simplifying if possible.
   """
   def add(left, right)
-  def add({:error,_}=err,_), do: err
-  def add(_,{:error,_}=err), do: err
+  def add(err,_) when is_error(err), do: err
+  def add(_,err) when is_error(err), do: err
   def add(u, 0), do: u
   def add(0, v), do: v
   def add(u, v) when is_number(u) and is_number(v), do: u + v
@@ -20,8 +28,8 @@ defmodule SymbolicArithmetic do
   Subtracts one symbolic term from another, simplifying if possible.
   """
   def subtract(minuend, subtrahend)
-  def subtract({:error,_}=err,_), do: err
-  def subtract(_,{:error,_}=err), do: err
+  def subtract(err,_) when is_error(err), do: err
+  def subtract(_,err) when is_error(err), do: err
   def subtract(u, u), do: 0
   def subtract(u, v) when is_number(u) and is_number(v), do: u - v
   def subtract(u, 0), do: u
@@ -33,8 +41,8 @@ defmodule SymbolicArithmetic do
   Multiplies two symbolic terms, simplifying if possible.
   """
   def multiply(left, right)
-  def multiply({:error,_}=err,_), do: err
-  def multiply(_,{:error,_}=err), do: err
+  def multiply(err,_) when is_error(err), do: err
+  def multiply(_,err) when is_error(err), do: err
   def multiply(_, 0), do: 0
   def multiply(0, _), do: 0
   def multiply(u, 1), do: u
@@ -49,63 +57,11 @@ defmodule SymbolicArithmetic do
   Dividing by zero is not permitted and will return an error.
   """
   def divide(dividend, divisor)
-  def divide({:error,_}=err,_), do: err
-  def divide(_,{:error,_}=err), do: err
-  def divide(_, 0), do: {:error, "cannot divide by zero"}
+  def divide(err,_) when is_error(err), do: err
+  def divide(_,err) when is_error(err), do: err
+  def divide(_, 0), do: err_term("cannot divide by zero")
   def divide(0, _), do: 0
   def divide(u, 1), do: u
   def divide(u, v) when is_number(u) and is_number(v), do: u / v
   def divide(u, v), do: div_term(u, v)
-
-  # Constructs the aritmetic expression literals
-  #
-  # These are represented by AST-like tuples: {operation, left, right}
-  #
-  defp add_term(u, v), do: {:+, u, v}
-  defp sub_term(u, v), do: {:-, u, v}
-  defp mul_term(u, v), do: {:*, u, v}
-  defp div_term(u, v), do: {:/, u, v}
-
-  # accessor methods
-
-  def left({_,left,_}),   do: left
-  def right({_,_,right}), do: right
-
-  # query macros for guard clauses
-
-  defmacro is_addition(term) do
-    quote do
-      is_tuple(unquote(term)) and
-      tuple_size(unquote(term)) == 3 and
-      elem(unquote(term),0) == :+
-    end
-  end
-
-  defmacro is_subtraction(term) do
-    quote do
-      is_tuple(unquote(term)) and
-      tuple_size(unquote(term)) == 3 and
-      elem(unquote(term),0) == :-
-    end
-  end
-
-  defmacro is_multiplication(term) do
-    quote do
-      is_tuple(unquote(term)) and
-      tuple_size(unquote(term)) == 3 and
-      elem(unquote(term),0) == :*
-    end
-  end
-
-  defmacro is_division(term) do
-    quote do
-      is_tuple(unquote(term)) and
-      tuple_size(unquote(term)) == 3 and
-      elem(unquote(term),0) == :/
-    end
-  end
-
-  defmacro is_error(term) do
-    quote do: is_tuple(unquote(term)) and elem(unquote(term),0) == :error
-  end
 end
