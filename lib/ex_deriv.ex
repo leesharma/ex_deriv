@@ -6,7 +6,15 @@ defmodule ExDeriv do
   Any polynomial terms must be defined in terms of these functions.
   """
 
-  import SymbolicArithmetic
+  require SymbolicArithmetic
+  import SymbolicArithmetic,
+    only: [
+      add: 2, subtract: 2, multiply: 2, divide: 2,
+      left: 1, right: 1,
+      is_addition: 1, is_subtraction: 1,
+      is_multiplication: 1, is_division: 1,
+      is_error: 1
+    ]
 
   @doc """
   Derives an expression in terms of the given variable.
@@ -20,13 +28,24 @@ defmodule ExDeriv do
   def derive(y, _) when is_atom(y) or is_number(y), do: 0
 
   # sum rule: (u+v)' = u' + v'
-  def derive({:+, u, v}, x), do: add(derive(u,x), derive(v,x))
+  def derive(term, x) when is_addition(term) do
+    u = left(term)
+    v = right(term)
+    add(derive(u,x), derive(v,x))
+  end
 
   # difference rule: (u-v)' = u' - v'
-  def derive({:-, u, v}, x), do: subtract(derive(u,x), derive(v,x))
+  def derive(term, x) when is_subtraction(term) do
+    u = left(term)
+    v = right(term)
+    subtract(derive(u,x), derive(v,x))
+  end
 
   # product rule: (uv)' = u'v + uv'
-  def derive({:*, u, v}, x) do
+  def derive(term, x) when is_multiplication(term) do
+    u = left(term)
+    v = right(term)
+
     left  = multiply(v, derive(u,x))
     right = multiply(u, derive(v,x))
 
@@ -34,7 +53,10 @@ defmodule ExDeriv do
   end
 
   # quotient rule: (u/v)' = (u'v - uv') / v^2
-  def derive({:/, u, v}, x) do
+  def derive(term, x) when is_division(term) do
+    u = left(term)
+    v = right(term)
+
     left  = multiply(v, derive(u,x))
     right = multiply(u, derive(v,x))
     numer = subtract(left, right)
@@ -44,5 +66,5 @@ defmodule ExDeriv do
   end
 
   # errors
-  def derive({:error,_} = err, _), do: err
+  def derive(err, _) when is_error(err), do: err
 end
