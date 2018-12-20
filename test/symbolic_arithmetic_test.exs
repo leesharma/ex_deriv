@@ -18,6 +18,10 @@ defmodule SymbolicArithmeticTest do
     assert 111 == add(10, 101)
   end
 
+  test "addition with a negative constant on the left reduces to subtraction" do
+    assert sub_term(:x,10) == add(:x, -10)
+  end
+
   test "addition with a constant and a variable doesn't reduce" do
     assert add_term(10,:x) == add(10, :x)
     assert add_term(:x,10) == add(:x, 10)

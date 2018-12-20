@@ -20,6 +20,7 @@ defmodule SymbolicArithmetic do
   def add(u, 0), do: u
   def add(0, v), do: v
   def add(u, v) when is_number(u) and is_number(v), do: u + v
+  def add(u, n) when is_number(n) and n < 0, do: sub_term(u, -n)
   def add(u, u), do: mul_term(2, u)
   def add(u, v), do: add_term(u, v)
 
